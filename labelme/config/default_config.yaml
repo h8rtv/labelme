@@ -72,6 +72,7 @@ canvas:
   crosshair:
     polygon: false
     rectangle: true
+    rectangle-extreme: true
     circle: false
     line: false
     point: false
@@ -99,6 +100,7 @@ shortcuts:
 
   create_polygon: Ctrl+N
   create_rectangle: Ctrl+R
+  create_rectangle_extreme: Ctrl+X
   create_circle: null
   create_line: null
   create_point: null

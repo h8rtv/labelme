@@ -55,6 +55,7 @@ class Canvas(QtWidgets.QWidget):
             {
                 "polygon": False,
                 "rectangle": True,
+                "rectangle-extreme": True,
                 "circle": False,
                 "line": False,
                 "point": False,
@@ -120,6 +121,7 @@ class Canvas(QtWidgets.QWidget):
         if value not in [
             "polygon",
             "rectangle",
+            "rectangle-extreme",
             "circle",
             "line",
             "point",
@@ -251,6 +253,8 @@ class Canvas(QtWidgets.QWidget):
         if self.drawing():
             if self.createMode == "ai_polygon":
                 self.line.shape_type = "points"
+            elif self.createMode == "rectangle-extreme":
+                self.line.shape_type = "rectangle"
             else:
                 self.line.shape_type = self.createMode
 
@@ -284,6 +288,10 @@ class Canvas(QtWidgets.QWidget):
                     0 if is_shift_pressed else 1,
                 ]
             elif self.createMode == "rectangle":
+                self.line.points = [self.current[0], pos]
+                self.line.point_labels = [1, 1]
+                self.line.close()
+            elif self.createMode == "rectangle-extreme":
                 self.line.points = [self.current[0], pos]
                 self.line.point_labels = [1, 1]
                 self.line.close()
@@ -425,6 +433,11 @@ class Canvas(QtWidgets.QWidget):
                         self.line[0] = self.current[-1]
                         if self.current.isClosed():
                             self.finalise()
+                    elif self.createMode == 'rectangle-extreme':
+                        self.current.addPoint(self.line[1])
+                        self.line[0] = self.current[-1]
+                        if len(self.current.points) == 4:
+                            self.finalise()
                     elif self.createMode in ["rectangle", "circle", "line"]:
                         assert len(self.current.points) == 1
                         self.current.points = self.line.points
@@ -447,11 +460,13 @@ class Canvas(QtWidgets.QWidget):
                             self.finalise()
                 elif not self.outOfPixmap(pos):
                     # Create new shape.
-                    self.current = Shape(
-                        shape_type="points"
-                        if self.createMode == "ai_polygon"
-                        else self.createMode
-                    )
+                    shape_type_dict = {
+                        "ai_polygon": "points",
+                        "rectangle-extreme": "rectangle",
+                    }
+                    shape_type = shape_type_dict.get(self.createMode,
+                                                     self.createMode)
+                    self.current = Shape(shape_type=shape_type)
                     self.current.addPoint(
                         pos, label=0 if is_shift_pressed else 1
                     )
@@ -994,7 +1009,7 @@ class Canvas(QtWidgets.QWidget):
         self.current = self.shapes.pop()
         self.current.setOpen()
         self.current.restoreShapeRaw()
-        if self.createMode in ["polygon", "linestrip"]:
+        if self.createMode in ["polygon", "linestrip", "rectangle-extreme"]:
             self.line.points = [self.current[-1], self.current[0]]
         elif self.createMode in ["rectangle", "line", "circle"]:
             self.current.points = self.current.points[0:1]

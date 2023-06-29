@@ -178,6 +178,23 @@ class Shape(object):
         x2, y2 = pt2.x(), pt2.y()
         return QtCore.QRectF(x1, y1, x2 - x1, y2 - y1)
 
+    def getDiagonalPointsFromExtremes(self, pt1, pt2, pt3, pt4):
+        xs = [
+            pt1.x(),
+            pt2.x(),
+            pt3.x(),
+            pt4.x(),
+        ]
+        ys = [
+            pt1.y(),
+            pt2.y(),
+            pt3.y(),
+            pt4.y(),
+        ]
+        new_pt1 = QtCore.QPointF(min(xs), min(ys))
+        new_pt2 = QtCore.QPointF(max(xs), max(ys))
+        return [new_pt1, new_pt2]
+
     def paint(self, painter):
         if self.points:
             color = (
@@ -193,7 +210,11 @@ class Shape(object):
             negative_vrtx_path = QtGui.QPainterPath()
 
             if self.shape_type == "rectangle":
-                assert len(self.points) in [1, 2]
+                assert len(self.points) in [1, 2, 3, 4]
+                if len(self.points) == 4:
+                    self.points = self.getDiagonalPointsFromExtremes(
+                        *self.points
+                    )
                 if len(self.points) == 2:
                     rectangle = self.getRectFromLine(*self.points)
                     line_path.addRect(rectangle)
